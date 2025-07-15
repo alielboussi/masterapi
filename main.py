@@ -28,7 +28,6 @@ def init_db():
         Onlineid INTEGER,
         branchid INTEGER,
         Userid INTEGER,
-        kdsid INTEGER,
         received_at TEXT
     )''')
     # 2. DayEnd
@@ -52,8 +51,6 @@ def init_db():
         Date TEXT,
         branchid INTEGER,
         uploadstatus INTEGER,
-        kdsid INTEGER,
-        typec TEXT,
         received_at TEXT
     )''')
     # 4. IssueStock
@@ -80,8 +77,6 @@ def init_db():
         time TEXT,
         UserId INTEGER,
         TotalBill REAL,
-        Discount REAL,
-        DiscountAmount REAL,
         NetBill REAL,
         BillType TEXT,
         OrderType TEXT,
@@ -93,10 +88,6 @@ def init_db():
         branchid INTEGER,
         GSTPerc REAL,
         Shiftid INTEGER,
-        Customer TEXT,
-        message TEXT,
-        Deliverystatus TEXT,
-        servicecharges REAL,
         TerminalOrder INTEGER,
         invoice TEXT,
         received_at TEXT
@@ -107,8 +98,6 @@ def init_db():
         saleid INTEGER,
         MenuItemId INTEGER,
         Flavourid INTEGER,
-        ModifierId INTEGER,
-        RuntimeModifierId INTEGER,
         Quantity REAL,
         Price REAL,
         BarnchCode TEXT,
@@ -117,21 +106,24 @@ def init_db():
         Orderstatus TEXT,
         branchid INTEGER,
         Itemdiscount REAL,
-        uploadstatus INTEGER,
         received_at TEXT
     )''')
     conn.commit()
     conn.close()
 init_db()
 
-# --- Helper: insert row to any table ---
+# --- Helper: insert row to any table, IGNORE extra fields ---
 def insert_to_table(table: str, data: Dict[str, Any]):
     conn = get_conn()
     cursor = conn.cursor()
-    columns = ','.join(data.keys())
-    placeholders = ','.join('?' for _ in data)
+    # Only use columns that exist in the table (future-proof, ignores extra)
+    cursor.execute(f'PRAGMA table_info({table})')
+    columns_db = set([row[1] for row in cursor.fetchall()])
+    clean_data = {k: v for k, v in data.items() if k in columns_db}
+    columns = ','.join(clean_data.keys())
+    placeholders = ','.join('?' for _ in clean_data)
     sql = f'INSERT INTO {table} ({columns},received_at) VALUES ({placeholders},datetime("now"))'
-    values = list(data.values())
+    values = list(clean_data.values())
     cursor.execute(sql, values)
     conn.commit()
     conn.close()
