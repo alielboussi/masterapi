@@ -165,6 +165,61 @@ async def push_saledetails(request: Request):
     insert_to_table("Saledetails", data)
     return {"status": "success"}
 
+# --- GET endpoints for each table ---
+@app.get("/api/closing")
+def get_closing():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Closing")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+@app.get("/api/dayend")
+def get_dayend():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM DayEnd")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+@app.get("/api/inventoryconsumed")
+def get_inventoryconsumed():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM InventoryConsumed")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+@app.get("/api/issuestock")
+def get_issuestock():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM IssueStock")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+@app.get("/api/sale")
+def get_sale():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Sale")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+@app.get("/api/saledetails")
+def get_saledetails():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Saledetails")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
 # --- GET endpoint: all data, grouped by branchid ---
 @app.get("/api/alldata")
 def get_all_data():
