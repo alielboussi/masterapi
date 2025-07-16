@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 import sqlite3
 from typing import Dict, Any
+from branches import BRANCHES  # <-- import branch names mapping
 
 app = FastAPI()
 
@@ -220,23 +221,27 @@ def get_saledetails():
     conn.close()
     return rows
 
-# --- GET endpoint: all data, grouped by branchid ---
+# --- GET endpoint: all data, grouped by branch name (NOT ID) ---
 @app.get("/api/alldata")
 def get_all_data():
     conn = get_conn()
     cursor = conn.cursor()
     tables = ["Closing", "DayEnd", "InventoryConsumed", "IssueStock", "Sale", "Saledetails"]
-    result = {}
+    by_id = {}
     for table in tables:
         cursor.execute(f"SELECT * FROM {table}")
         rows = [dict(row) for row in cursor.fetchall()]
-        # group by branchid:
         for row in rows:
             branchid = row.get("branchid")
             if branchid is None:
                 continue
-            if branchid not in result:
-                result[branchid] = {t: [] for t in tables}
-            result[branchid][table].append(row)
+            if branchid not in by_id:
+                by_id[branchid] = {t: [] for t in tables}
+            by_id[branchid][table].append(row)
     conn.close()
-    return result
+    # Now convert branchid keys to branch names for output
+    by_name = {}
+    for branchid, data in by_id.items():
+        branch_name = BRANCHES.get(branchid, str(branchid))
+        by_name[branch_name] = data
+    return by_name
